@@ -8,9 +8,19 @@ datasource db {
   relationMode = "prisma"
 }
 
+model Attendance {
+  id        Int      @id @default(autoincrement())
+  user      Users    @relation(fields: [userId], references: [id])
+  userId    Int
+  event     Event    @relation(fields: [eventId], references: [id])
+  eventId   Int
+  attended  Boolean  @default(false)
+}
+
 model Users {
   id          Int    @id @default(autoincrement())
   UIN         String @unique
+  name        String
   SPRINGINFO  Int    @default(0)
   BOBASOCIAL  Int    @default(0)
   CHEVRONGBM  Int    @default(0)
@@ -27,11 +37,6 @@ model Users {
   WILLIAMSGBM Int    @default(0)
   PEPSICOGBM  Int    @default(0)
   GBM1        Int    @default(0)
-}
-
-model User {
-  id        Int       @id @default(autoincrement())
-  UIN       String    @unique
   attendances Attendance[]
 }
 
@@ -40,13 +45,4 @@ model Event {
   title       String
   date        DateTime
   attendances Attendance[]
-}
-
-model Attendance {
-  id        Int      @id @default(autoincrement())
-  user      User     @relation(fields: [userId], references: [id])
-  userId    Int
-  event     Event    @relation(fields: [eventId], references: [id])
-  eventId   Int
-  attended  Boolean  @default(false)
 }
