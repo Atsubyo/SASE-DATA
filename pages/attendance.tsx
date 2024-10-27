@@ -2,8 +2,13 @@ import React, { useState } from 'react';
 import { NavBar } from '../src/components/NavBar';
 import { Footer } from '../src/components/Footer';
 
-interface AttendanceApiResponse {
-  attendedEvents: string[];
+interface AAR {
+  full_name: string;
+  AHC: {
+    event_name: string;
+    attended: boolean;
+    timestamp: string | null;
+  }[];
 }
 
 const check_uin = (uin: string) => {
@@ -12,59 +17,53 @@ const check_uin = (uin: string) => {
 };
 
 const Attendance = () => {
-  const [uin, setUin] = useState('');
-  const [attendedEvents, setAttendedEvents] = useState<string[]>([]);
-  const [displayUIN, setDisplayUIN] = useState('');
-  const [isSearching, setIsSearching] = useState(false);
-  const [isCreatingUser, setIsCreatingUser] = useState(false);
-  const [userMessage, setUserMessage] = useState('');
-  const [isUserNotFound, setIsUserNotFound] = useState(false);
+  const [uin, set_uin] = useState('');
+  const [attendance_data, set_attendance_data] = useState<AAR | null>(null);
+  const [searching, set_searching] = useState(false);
+  const [creating_user, set_creating_user] = useState(false);
+  const [user_message, set_user_message] = useState('');
+  const [unf, set_unf] = useState(false);
 
-  // Fetch attendance data for a given UIN
-  const fetchAttendance = async () => {
+  //Fetching attendance data for a given UIN
+  const attendance_fetcher = async () => {
     if (!check_uin(uin)) {
       alert("Invalid UIN. Please enter a valid 9-digit UIN.");
       return;
     }
 
-    setIsSearching(true);
-    setAttendedEvents([]);
-    setUserMessage('');
-    setDisplayUIN(uin);
-    setIsUserNotFound(false);
+    set_searching(true);
+    set_attendance_data(null);
+    set_user_message('');
+    set_unf(false);
 
     try {
       const response = await fetch(`/api/attendance?uin=${uin}`);
       if (response.ok) {
-        const jsonResponse = await response.json() as AttendanceApiResponse;
-        if ('attendedEvents' in jsonResponse) {
-          setAttendedEvents(jsonResponse.attendedEvents);
-          setUserMessage('');
-        } else {
-          console.error("Invalid response structure:", jsonResponse);
-        }
+        const jsonResponse = await response.json() as AAR;
+        set_attendance_data(jsonResponse);
+        set_user_message('');
       } else if (response.status === 404) {
-        setUserMessage('We could not find you, please register yourself by clicking the button below.');
-        setIsUserNotFound(true);
+        set_user_message('We could not find you, please register yourself by clicking the button below.');
+        set_unf(true);
       } else {
         console.error("Failed to fetch attendance data");
       }
     } catch (error) {
       console.error("Error fetching attendance data:", error);
     } finally {
-      setIsSearching(false);
+      set_searching(false);
     }
   };
 
-  // New User Creation based on given UIN
+  //Registration/Creation of a new user with the provided UIN
   const NUC = async () => {
     if (!check_uin(uin)) {
       alert("Invalid UIN. Please enter a valid 9-digit UIN.");
       return;
     }
 
-    setIsCreatingUser(true);
-    setUserMessage('');
+    set_creating_user(true);
+    set_user_message('');
 
     try {
       const response = await fetch('/api/users', {
@@ -74,24 +73,17 @@ const Attendance = () => {
       });
 
       if (response.ok) {
-        setUserMessage('Registered successfully! Now checking attendance...');
-        setIsUserNotFound(false);
-
-        // Verifying whether new user was created
-        const resp_ver = await fetch(`/api/attendance?uin=${uin}`);
-        if (resp_ver.ok) {
-          await fetchAttendance();
-        } else {
-          setUserMessage('User creation failed or was not captured correctly.');
-        }
+        set_user_message('Registered successfully! Now checking attendance...');
+        set_unf(false);
+        await attendance_fetcher();
       } else {
-        setUserMessage('Failed to register new user.');
+        set_user_message('Failed to register new user.');
         console.error("Failed to register new user");
       }
     } catch (error) {
       console.error("Error creating new user:", error);
     } finally {
-      setIsCreatingUser(false);
+      set_creating_user(false);
     }
   };
 
@@ -110,46 +102,44 @@ const Attendance = () => {
               type="text" 
               placeholder='Your UIN' 
               value={uin} 
-              onChange={e => setUin(e.currentTarget.value)} 
+              onChange={e => set_uin(e.currentTarget.value)} 
               className='w-full mb-4 p-2 bg-white border'
             />
             <button 
-              onClick={fetchAttendance}
+              onClick={attendance_fetcher}
               className='w-full bg-sky-700 hover:bg-sky-800 text-white font-semibold py-2 px-4 rounded mb-4'
-              disabled={isSearching}
+              disabled={searching}
             >
-              {isSearching ? 'Checking...' : 'Check Attendance'}
+              {searching ? 'Checking...' : 'Check Attendance'}
             </button>
-            
-            {userMessage && (
+
+            {user_message && (
               <div className="w-full mt-4 p-4 bg-yellow-200 text-yellow-900 rounded">
-                <p>{userMessage}</p>
+                <p>{user_message}</p>
               </div>
             )}
 
-            {isUserNotFound && (
+            {unf && (
               <button 
                 onClick={NUC}
                 className='w-full mt-4 bg-green-700 hover:bg-green-800 text-white font-semibold py-2 px-4 rounded'
-                disabled={isCreatingUser}
+                disabled={creating_user}
               >
-                {isCreatingUser ? 'Registering...' : 'Register as New User'}
+                {creating_user ? 'Registering...' : 'Register as New User'}
               </button>
             )}
           </div>
 
-          {displayUIN && (
+          {attendance_data && (
             <div className="w-5/6 md:w-1/2 p-10 bg-white shadow-lg rounded-xl mt-5">
-              <h2 className="font-bebas text-3xl mb-3">(Spring '24) Attendance for UIN: {displayUIN}</h2>
-              {attendedEvents.length > 0 ? (
-                <ul>
-                  {attendedEvents.map(event => (
-                    <li key={event}>{event}</li>
-                  ))}
-                </ul>
-              ) : (
-                <p>No events attended yet.</p>
-              )}
+              <h2 className="font-bebas text-3xl mb-3">{attendance_data.full_name}, your attendance history is as follows:</h2>
+              <ul>
+                {attendance_data.AHC.map((record, index) => (
+                  <li key={index}>
+                    {record.event_name}: {record.attended ? `Attended` : 'Did not attend'}
+                  </li>
+                ))}
+              </ul>
             </div>
           )}
         </div>

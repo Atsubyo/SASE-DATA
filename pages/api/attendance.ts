@@ -1,18 +1,21 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import prisma from './prismaClient'; // Import Prisma client
+import prisma from './prismaClient'; // Import the Prisma client
 
-// API handler function
+const EVENT_COLUMNS = [
+  'INFORMATIONAL', 'WILLIAMSGBM', 'BOBASOCIAL', 'CDMSMITH', 'SQUADREVEALSOCIAL', 'RESUMEROAST',
+  'GEVERNOVA', 'KIMCHISCAVENGERHUNT', 'KDASOCIAL', 'SWRIGBM', 'SQUIDSQUADGAMES'
+];
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
     const { uin } = req.query;
 
-    // Basic validation
     if (!uin || typeof uin !== 'string') {
       return res.status(400).json({ message: "'uin' is required and must be a string." });
     }
 
     try {
-      // Check if user exists and fetch attendance
+      //Fetching the user based on UIN
       const user = await prisma.users.findUnique({
         where: { UIN: uin },
       });
@@ -21,37 +24,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(404).json({ message: 'User not found' });
       }
 
-      // Collect attended events
-      const attendedEvents = Object.keys(user).filter(key => user[key] === 1);
+      //Collecting attendance history
+      const AHC = EVENT_COLUMNS.map(event => ({
+        event_name: event,
+        attended: user[event] === 1, 
+        timestamp: user[event] === 1 ? user['Timestamp'] : null, 
+      }));
 
-      res.status(200).json({ attendedEvents });
+      res.status(200).json({
+        full_name: user.name,
+        AHC,
+      });
     } catch (error) {
       console.error("Error in GET /api/attendance:", error);
       res.status(500).json({ message: 'Internal Server Error', details: error.message });
     }
-  } else if (req.method === 'POST') {
-    const { uin, event } = req.body;
-
-    // Basic validation
-    if (!uin || !event) {
-      return res.status(400).json({ message: "'uin' and 'event' are required." });
-    }
-
-    try {
-      // Update or create user and mark attendance
-      const user = await prisma.users.upsert({
-        where: { UIN: uin },
-        update: { [event.toUpperCase()]: 1 },
-        create: { UIN: uin, [event.toUpperCase()]: 1 },
-      });
-
-      res.status(200).json({ message: 'Attendance marked', user });
-    } catch (error) {
-      console.error("Error in POST /api/attendance:", error);
-      res.status(500).json({ message: 'Internal Server Error', details: error.message });
-    }
   } else {
-    res.setHeader('Allow', ['GET', 'POST']);
+    res.setHeader('Allow', ['GET']);
     res.status(405).json({ message: 'Method Not Allowed' });
   }
 }
