@@ -8,6 +8,7 @@ export const env = createEnv({
    */
   server: {
     NODE_ENV: z.enum(["development", "test", "production"]),
+    DATABASE_URL: z.string().url(), //Added this line to properly connect to the database
   },
 
   /**
