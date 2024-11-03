@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { NavBar } from "~/components/NavBar";
 import { Footer } from "~/components/Footer";
-import { UserNotFoundError } from "~/types/errors";
+import { UserNotFoundError, UserNotRegisteredError } from "~/types/errors";
 import type { AttendanceApiResponse } from "~/types/AttendanceTypes";
 
 const check_uin = (uin: string) => {
@@ -19,7 +19,7 @@ const Attendance = () => {
   const [unf, set_unf] = useState(false);
 
   //Fetching attendance data for a given UIN
-  const attendance_fetcher = async () => {
+  const attendance_fetcher = (): void => {
     if (!check_uin(uin)) {
       alert("Invalid UIN. Please enter a valid 9-digit UIN.");
       return;
@@ -30,7 +30,8 @@ const Attendance = () => {
     set_user_message("");
     set_unf(false);
 
-    const data = await fetch(`/api/attendance?uin=${uin}`)
+    //const data =
+    fetch(`/api/attendance?uin=${uin}`)
       .then(async (response) => {
         if (!response.ok) {
           throw new UserNotFoundError(
@@ -41,25 +42,22 @@ const Attendance = () => {
         const jsonResponse = (await response.json()) as AttendanceApiResponse;
         set_attendance_data(jsonResponse);
         set_user_message("");
-        return jsonResponse;
-      })
-      .then((data) => {
-        return data;
       })
       .catch((error: Error) => {
         if (error instanceof UserNotFoundError) {
           set_user_message(error.message);
           set_unf(true);
+          console.error(error.message);
         } else {
           console.error("Failed to fetch attendance data");
         }
       });
+
     set_searching(false);
-    return data;
   };
 
   //Registration/Creation of a new user with the provided UIN
-  const NUC = async () => {
+  const NUC = (): void => {
     if (!check_uin(uin)) {
       alert("Invalid UIN. Please enter a valid 9-digit UIN.");
       return;
@@ -68,26 +66,32 @@ const Attendance = () => {
     set_creating_user(true);
     set_user_message("");
 
-    try {
-      const response = await fetch("/api/users", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ UIN: uin, name: "New User" }),
-      });
-
-      if (response.ok) {
+    fetch("/api/users", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ UIN: uin, name: "New User" }),
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new UserNotRegisteredError(
+            "Failed to register new user.",
+            response.status
+          );
+        }
         set_user_message("Registered successfully! Now checking attendance...");
         set_unf(false);
-        await attendance_fetcher();
-      } else {
-        set_user_message("Failed to register new user.");
-        console.error("Failed to register new user");
-      }
-    } catch (error) {
-      console.error("Error creating new user:", error);
-    } finally {
-      set_creating_user(false);
-    }
+        attendance_fetcher();
+      })
+      .catch((error: Error) => {
+        if (error instanceof UserNotFoundError) {
+          set_user_message(error.message);
+          console.error(error.message);
+        } else {
+          console.error("Error creating new user:", error);
+        }
+      });
+
+    set_creating_user(false);
   };
 
   return (
@@ -112,7 +116,7 @@ const Attendance = () => {
               className="mb-4 w-full border bg-white p-2"
             />
             <button
-              onClick={() => attendance_fetcher}
+              onClick={attendance_fetcher}
               className="mb-4 w-full rounded bg-sky-700 px-4 py-2 font-semibold text-white hover:bg-sky-800"
               disabled={searching}
             >
@@ -127,7 +131,7 @@ const Attendance = () => {
 
             {unf && (
               <button
-                onClick={() => NUC}
+                onClick={NUC}
                 className="mt-4 w-full rounded bg-green-700 px-4 py-2 font-semibold text-white hover:bg-green-800"
                 disabled={creating_user}
               >
