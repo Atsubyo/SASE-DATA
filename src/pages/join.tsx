@@ -1,7 +1,7 @@
-import React from 'react'
-import Image from '../node_modules/next/image';
-import {NavBar} from '../src/components/NavBar';
-import {Footer} from '../src/components/Footer';
+import React from "react";
+import Image from "next/image";
+import { NavBar } from "../components/NavBar";
+import { Footer } from "../components/Footer";
 
 const join = () => {
   return (
@@ -107,6 +107,6 @@ const join = () => {
       <Footer />
     </div>
   );
-}
+};
 
-export default join
+export default join;
