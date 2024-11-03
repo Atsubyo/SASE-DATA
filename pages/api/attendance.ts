@@ -1,17 +1,32 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import prisma from './prismaClient'; // Import the Prisma client
+import { AHCType } from "pages/attendance";
 
 const EVENT_COLUMNS = [
-  'INFORMATIONAL', 'WILLIAMSGBM', 'BOBASOCIAL', 'CDMSMITH', 'SQUADREVEALSOCIAL', 'RESUMEROAST',
-  'GEVERNOVA', 'KIMCHISCAVENGERHUNT', 'KDASOCIAL', 'SWRIGBM', 'SQUIDSQUADGAMES'
+  "INFORMATIONAL",
+  "WILLIAMSGBM",
+  "BOBASOCIAL",
+  "CDMSMITH",
+  "SQUADREVEALSOCIAL",
+  "RESUMEROAST",
+  "GEVERNOVA",
+  "KIMCHISCAVENGERHUNT",
+  "KDASOCIAL",
+  "SWRIGBM",
+  "SQUIDSQUADGAMES",
 ];
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method === 'GET') {
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
+  if (req.method === "GET") {
     const { uin } = req.query;
 
-    if (!uin || typeof uin !== 'string') {
-      return res.status(400).json({ message: "'uin' is required and must be a string." });
+    if (!uin || typeof uin !== "string") {
+      return res
+        .status(400)
+        .json({ message: "'uin' is required and must be a string." });
     }
 
     try {
@@ -21,15 +36,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
 
       if (!user) {
-        return res.status(404).json({ message: 'User not found' });
+        return res.status(404).json({ message: "User not found" });
       }
 
       //Collecting attendance history
-      const AHC = EVENT_COLUMNS.map(event => ({
-        event_name: event,
-        attended: user[event] === 1, 
-        timestamp: user[event] === 1 ? user['Timestamp'] : null, 
-      }));
+      const AHC: AHCType[] = EVENT_COLUMNS.map(
+        (event): AHCType => ({
+          event_name: event,
+          attended: user[event] === 1,
+          timestamp: user[event] === 1 ? (user["Timestamp"] as string) : null,
+        })
+      );
 
       res.status(200).json({
         full_name: user.name,
@@ -37,10 +54,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     } catch (error) {
       console.error("Error in GET /api/attendance:", error);
-      res.status(500).json({ message: 'Internal Server Error', details: error.message });
+      return res.status(500).json({
+        message: "Internal Server Error",
+        details:
+          error instanceof Error ? error.message : "An unkonwn erro ocurred.",
+      });
     }
   } else {
-    res.setHeader('Allow', ['GET']);
-    res.status(405).json({ message: 'Method Not Allowed' });
+    res.setHeader("Allow", ["GET"]);
+    res.status(405).json({ message: "Method Not Allowed" });
   }
 }
