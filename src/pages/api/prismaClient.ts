@@ -1,23 +1,19 @@
-/* eslint-disable no-var */
 import { PrismaClient } from '@prisma/client';
 
-// Type-safe declaration for the global property
-declare global {
-    var prisma: PrismaClient | undefined;
-}
+// Ensure prisma is not redefined in development
+declare const global: {
+  prisma?: PrismaClient;
+};
 
-export let prisma: PrismaClient;
+let prisma: PrismaClient;
 
 if (process.env.NODE_ENV === 'production') {
-    prisma = new PrismaClient();
+  prisma = new PrismaClient();
 } else {
-    // Checking if prisma is already defined on globalThis to prevent multiple instances
-    if (!globalThis.prisma) {
-        globalThis.prisma = new PrismaClient();
-    }
-    prisma = global.prisma as PrismaClient;
+  if (!global.prisma) {
+    global.prisma = new PrismaClient();
+  }
+  prisma = global.prisma;
 }
-
-export { };
 
 export default prisma;

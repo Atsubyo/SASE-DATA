@@ -1,7 +1,7 @@
 import React from "react";
-import { NavBar } from "../components/NavBar";
-import { Footer } from "../components/Footer";
-import LogoList from "../components/LogoList";
+import { NavBar } from "src/components/NavBar";
+import { Footer } from "src/components/Footer";
+import LogoList from "src/components/LogoList";
 
 //NOTE THAT WHEN ADDING, FILE PATHS ARE CASE-SENSITIVE!
 

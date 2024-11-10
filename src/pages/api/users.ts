@@ -1,6 +1,6 @@
 import { PrismaClient, Users } from "@prisma/client"; // Import the generated types from Prisma
 import type { NextApiRequest, NextApiResponse } from "next";
-import type { RequestyBody } from "~/types/UserTypes"; // Ensure this type exists and matches your request structure
+import type { RequestyBody } from "~/types/UserTypes";
 
 const prisma = new PrismaClient();
 interface UserWEvents {
@@ -40,7 +40,7 @@ export default async function handler(
                 // Updating attendance for the target user if event is specified and not already marked
                 if (event) {
                     const eventKey = event.toUpperCase();
-                    if (!typeSafeUser[eventKey]) { // Casting to `any` temporarily, but a better structure would help avoid this
+                    if (!typeSafeUser[eventKey]) {
                         await prisma.users.update({
                             where: { UIN },
                             data: { [eventKey]: timestamp },
@@ -63,7 +63,7 @@ export default async function handler(
 
         // Handling DELETE requests: Deletion of a user by UIN
         if (req.method === "DELETE") {
-            const { UIN }: { UIN: string } = req.body as RequestyBody;
+            const { UIN }: {UIN: string} = req.body as RequestyBody;
 
             if (!UIN) {
                 return res.status(400).json({ message: "UIN is required to delete user." });
