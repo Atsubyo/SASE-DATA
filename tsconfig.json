@@ -1,13 +1,13 @@
 {
   "compilerOptions": {
-    "target": "es2017",
+    "target": "es2020",
     "lib": [
       "dom",
       "dom.iterable",
       "esnext"
     ],
     "allowJs": true,
-    "noImplicitAny": false,
+    "noImplicitAny": true,
     "checkJs": true,
     "skipLibCheck": true,
     "strict": true,

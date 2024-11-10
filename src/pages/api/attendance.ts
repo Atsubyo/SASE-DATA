@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import prisma from './prismaClient'; // Import the Prisma client
 import type { AttendanceHistory } from "~/types/AttendanceTypes";
 
-const EVENT_COLUMNS = [
+const EVENT_COLUMNS: string[] = [
   "INFORMATIONAL",
   "WILLIAMSGBM",
   "BOBASOCIAL",
@@ -15,6 +15,12 @@ const EVENT_COLUMNS = [
   "SWRIGBM",
   "SQUIDSQUADGAMES",
 ];
+
+interface user_record {
+    UIN: string;
+    name: string;
+    [key: string]: string | number | null | undefined;
+}
 
 export default async function handler(
   req: NextApiRequest,
@@ -33,7 +39,7 @@ export default async function handler(
       //Fetching the user based on UIN
       const user = await prisma.users.findUnique({
         where: { UIN: uin },
-      });
+      }) as user_record | null;
 
       if (!user) {
         return res.status(404).json({ message: "User not found" });
@@ -43,8 +49,9 @@ export default async function handler(
       const AHC: AttendanceHistory[] = EVENT_COLUMNS.map(
         (event): AttendanceHistory => ({
           event_name: event,
-          attended: user[event] === 1,
-          timestamp: user[event] === 1 ? (user["Timestamp"] as string) : null,
+              //attended: user[event] === 1,
+              attended: !!user[event],
+          timestamp: user[event] === 1 ? (user["Timestamp"] as string | null) : null,
         })
       );
 
