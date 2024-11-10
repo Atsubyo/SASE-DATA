@@ -1,6 +1,9 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import type { NextApiRequest, NextApiResponse } from 'next';
 import prisma from './prismaClient'; // Import the Prisma client
 import type { AttendanceHistory } from "~/types/AttendanceTypes";
+//import type { UsersCreateInput } from '@prisma/client';
 
 const EVENT_COLUMNS: string[] = [
   "INFORMATIONAL",

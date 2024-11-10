@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { PrismaClient, Users } from "@prisma/client"; // Import the generated types from Prisma
 import type { NextApiRequest, NextApiResponse } from "next";
 import type { RequestyBody } from "~/types/UserTypes";
