@@ -1,3 +1,4 @@
+"use client";
 import React, { useState } from 'react';
 import { NavBar } from "~/components/NavBar";
 import { Footer } from "~/components/Footer";
@@ -8,7 +9,6 @@ const check_uin = (uin: string) => {
   const uin_regex = new RegExp("^[0-9]{9}$");
   return uin_regex.test(uin);
 };
-
 const Attendance = () => {
   const [uin, set_uin] = useState("");
   const [attendance_data, set_attendance_data] =
