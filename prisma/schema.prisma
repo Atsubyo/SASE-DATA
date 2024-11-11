@@ -43,6 +43,6 @@ model Users {
 model Event {
   id          Int       @id @default(autoincrement())
   title       String
-  date        DateTime
+  date        String
   attendances Attendance[]
 }
