@@ -1,25 +1,22 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import type { NextApiRequest, NextApiResponse } from 'next';
 import prisma from './prismaClient'; // Import the Prisma client
-import type { AttendanceHistory } from "~/types/AttendanceTypes";
-//import type { UsersCreateInput } from '@prisma/client';
+import type { AttendanceHistory, AttendanceApiResponse } from "~/types/AttendanceTypes";
 
 const EVENT_COLUMNS: string[] = [
-  "INFORMATIONAL",
-  "WILLIAMSGBM",
-  "BOBASOCIAL",
-  "CDMSMITH",
-  "SQUADREVEALSOCIAL",
-  "RESUMEROAST",
-  "GEVERNOVA",
-  "KIMCHISCAVENGERHUNT",
-  "KDASOCIAL",
-  "SWRIGBM",
-  "SQUIDSQUADGAMES",
+    "INFORMATIONAL",
+    "WILLIAMSGBM",
+    "BOBASOCIAL",
+    "CDMSMITH",
+    "SQUADREVEALSOCIAL",
+    "RESUMEROAST",
+    "GEVERNOVA",
+    "KIMCHISCAVENGERHUNT",
+    "KDASOCIAL",
+    "SWRIGBM",
+    "SQUIDSQUADGAMES",
 ];
 
-interface user_record { //Explicit interface made to align with the Prisma schema
+interface UserRecord {
     UIN: string;
     name: string;
     [key: string]: string | number | null | undefined;
@@ -42,7 +39,7 @@ export default async function handler(
             // Fetching the user based on UIN
             const user = (await prisma.users.findUnique({
                 where: { UIN: uin },
-            })) as user_record | null;
+            })) as UserRecord | null;
 
             if (!user) {
                 return res.status(404).json({ message: "User not found" });
@@ -57,16 +54,17 @@ export default async function handler(
                 })
             );
 
-            res.status(200).json({
+            const response: AttendanceApiResponse = {
                 full_name: user.name,
                 AHC,
-            });
+            };
+
+            res.status(200).json(response);
         } catch (error) {
             console.error("Error in GET /api/attendance:", error);
             return res.status(500).json({
                 message: "Internal Server Error",
-                details:
-                    error instanceof Error ? error.message : "An unknown error occurred.",
+                details: error instanceof Error ? error.message : "An unknown error occurred.",
             });
         }
     } else {

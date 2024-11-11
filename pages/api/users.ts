@@ -1,15 +1,13 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { PrismaClient, Users } from "@prisma/client"; // Import the generated types from Prisma
 import type { NextApiRequest, NextApiResponse } from "next";
 import type { RequestyBody } from "~/types/UserTypes";
 
 const prisma = new PrismaClient();
-interface UserWEvents {
-    UIN: string;
-    name: string;
-    [key: string]: number | string | undefined;
+
+interface UserWEvents extends Users {
+    [key: string]: number | string | undefined; // To handle dynamic event properties
 }
+
 export default async function handler(
     req: NextApiRequest,
     res: NextApiResponse
@@ -39,6 +37,7 @@ export default async function handler(
 
             if (user) {
                 const typeSafeUser = user as UserWEvents; // Casting to a type with event keys
+
                 // Updating attendance for the target user if event is specified and not already marked
                 if (event) {
                     const eventKey = event.toUpperCase();
@@ -57,18 +56,21 @@ export default async function handler(
                 data: {
                     UIN,
                     name,
-                    [event ? event.toUpperCase() : ""]: event ? timestamp : undefined,
+                    ...(event ? { [event.toUpperCase()]: timestamp } : {}),
                 },
             });
+
             return res.status(201).json({ message: "User created", user });
         }
 
         // Handling DELETE requests: Deletion of a user by UIN
         if (req.method === "DELETE") {
-            const { UIN }: {UIN: string} = req.body as RequestyBody;
+            const { UIN }: { UIN: string } = req.body as RequestyBody;
 
             if (!UIN) {
-                return res.status(400).json({ message: "UIN is required to delete user." });
+                return res
+                    .status(400)
+                    .json({ message: "UIN is required to delete user." });
             }
 
             await prisma.users.delete({
@@ -83,7 +85,8 @@ export default async function handler(
         console.error("Error in users.ts:", error);
         return res.status(500).json({
             message: "Internal Server Error",
-            details: error instanceof Error ? error.message : "An unknown error occurred.",
+            details:
+                error instanceof Error ? error.message : "An unknown error occurred.",
         });
     }
 }
