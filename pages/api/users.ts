@@ -28,8 +28,8 @@ export default async function handler(
         // Handling POST requests: Creation of a new user or updating target user's attendance
         if (req.method === "POST") {
             console.log("Processing POST request...");
-            const { UIN, name, event, timestamp } = req.body as RequestyBody;
-            console.log("POST data:", { UIN, name, event, timestamp });
+            const { UIN, name, event} = req.body as RequestyBody;
+            console.log("POST data:", { UIN, name, event});
 
             // Basic validation
             if (!UIN || !name) {
@@ -56,7 +56,7 @@ export default async function handler(
                         console.log("Event not marked. Updating attendance...");
                         await prisma.users.update({
                             where: { UIN },
-                            data: { [eventKey]: timestamp },
+                            data: { [eventKey]: name },
                         });
                         console.log("Attendance updated.");
                     } else {
@@ -72,7 +72,7 @@ export default async function handler(
                 data: {
                     UIN,
                     name,
-                    ...(event ? { [event.toUpperCase()]: timestamp } : {}),
+                    ...(event ? { [event.toUpperCase()]: name } : {}),
                 },
             });
             console.log("User created:", user);
