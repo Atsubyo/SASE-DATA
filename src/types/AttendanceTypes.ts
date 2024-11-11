@@ -1,7 +1,7 @@
 export interface AttendanceHistory {
   event_name: string;
   attended: boolean;
-  timestamp: string | null;
+  //timestamp: string | null;
 }
 
 export interface AttendanceApiResponse {

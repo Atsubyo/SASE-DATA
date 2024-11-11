@@ -58,7 +58,7 @@ export default async function handler(
                 (event): AttendanceHistory => ({
                     event_name: event,
                     attended: !!user[event], // Safely checks for a truth value
-                    timestamp: user[event] === 1 ? (user["Timestamp"] as string | null) : null,
+                    //timestamp: user[event] === 1 ? (user["Timestamp"] as string | null) : null,
                 })
             );
 
