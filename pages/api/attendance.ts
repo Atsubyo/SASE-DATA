@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import prisma from './prismaClient'; // Import the Prisma client
 import type { AttendanceHistory, AttendanceApiResponse } from "~/types/AttendanceTypes";
+import { Users } from '@prisma/client';
 
 const EVENT_COLUMNS: string[] = [
     "INFORMATIONAL",
@@ -41,9 +42,10 @@ export default async function handler(
         try {
             console.log("Fetching user from the database...");
             // Fetching the user based on UIN
+            // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
             const user = (await prisma.users.findUnique({
                 where: { UIN: uin },
-            })) as UserRecord | null;
+            })) as Users | null;
 
             console.log("User fetched:", user);
 
@@ -57,7 +59,8 @@ export default async function handler(
             const AHC: AttendanceHistory[] = EVENT_COLUMNS.map(
                 (event): AttendanceHistory => ({
                     event_name: event,
-                    attended: !!user[event], // Safely checks for a truth value
+                    attended: !!user[event as keyof Users]
+                    //attended: !!user[event], // Safely checks for a truth value
                     //timestamp: user[event] === 1 ? (user["Timestamp"] as string | null) : null,
                 })
             );
