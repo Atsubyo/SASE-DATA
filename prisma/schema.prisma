@@ -43,6 +43,7 @@ model Users {
 model Event {
   id          Int          @id @default(autoincrement())
   title       String
+  code        String       @unique   // New field for event code
   date        DateTime
   attendances Attendance[]
 }
