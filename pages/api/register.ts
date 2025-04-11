@@ -1,6 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import prisma from './prismaClient';
-import { Users } from '@prisma/client';
+import prisma from "./prismaClient";
 
 // Mapping from event codes to event titles
 const eventMapping: Record<string, string> = {
@@ -8,29 +7,40 @@ const eventMapping: Record<string, string> = {
   "01": "Earth Che Night",
   "02": "Viet Field Day",
   "03": "Water Pokémon Go Event",
-  "04": "Fire Gingerbread House Competition"
+  "04": "Fire Gingerbread House Competition",
 };
+
+interface UserRecord {
+  UIN: string;
+  name: string;
+  event: string;
+  [key: string]: string | number | null;
+}
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  if (req.method === 'POST') {
+  if (req.method === "POST") {
     console.log("Request body:", req.body);
-    
+
     if (!req.body || typeof req.body !== "object") {
-      return res.status(400).json({ message: 'No request body provided or invalid body format.' });
+      return res
+        .status(400)
+        .json({ message: "No request body provided or invalid body format." });
     }
-    
-    const { UIN, name, event } = req.body;
-    
+
+    const { UIN, name, event } = req.body as UserRecord;
+
     if (!UIN || !name || !event) {
-      return res.status(400).json({ message: 'UIN, name, and event are required.' });
+      return res
+        .status(400)
+        .json({ message: "UIN, name, and event are required." });
     }
 
     const eventTitle = eventMapping[event];
     if (!eventTitle) {
-      return res.status(400).json({ message: 'Invalid event code.' });
+      return res.status(400).json({ message: "Invalid event code." });
     }
 
     try {
@@ -48,11 +58,12 @@ export default async function handler(
         console.log("User already exists:", user);
       }
 
-      //const eventRecord = await prisma.event.findUnique({ where: { title: eventTitle } });
-      const eventRecord = await prisma.event.findUnique({ where: { code: event } });
+      const eventRecord = await prisma.event.findUnique({
+        where: { code: event },
+      });
       if (!eventRecord) {
         console.log("Event record not found for title:", eventTitle);
-        return res.status(404).json({ message: 'Event not found.' });
+        return res.status(404).json({ message: "Event not found." });
       }
       console.log("Event record found:", eventRecord);
 
@@ -64,8 +75,13 @@ export default async function handler(
       });
 
       if (existingAttendance) {
-        console.log("Attendance already registered for this event:", existingAttendance);
-        return res.status(200).json({ message: 'Attendance already registered for this event.' });
+        console.log(
+          "Attendance already registered for this event:",
+          existingAttendance
+        );
+        return res
+          .status(200)
+          .json({ message: "Attendance already registered for this event." });
       } else {
         console.log("Creating a new attendance record");
         // Create a new attendance record linking the user to the event
@@ -76,24 +92,27 @@ export default async function handler(
             attended: true,
           },
         });
-        return res.status(200).json({ message: 'Attendance registered successfully.' });
+        return res
+          .status(200)
+          .json({ message: "Attendance registered successfully." });
       }
     } catch (error) {
-        // Ensure we have a proper error message even if error is null
-        const errorMsg = error 
-          ? (error instanceof Error ? error.message : JSON.stringify(error))
-          : 'Unknown error';
-      
-        console.error('Error registering attendance:', errorMsg);
-      
-        return res.status(500).json({
-          message: 'Internal Server Error',
-          details: errorMsg
-        });
-      }
-      
+      // Ensure we have a proper error message even if error is null
+      const errorMsg = error
+        ? error instanceof Error
+          ? error.message
+          : JSON.stringify(error)
+        : "Unknown error";
+
+      console.error("Error registering attendance:", errorMsg);
+
+      return res.status(500).json({
+        message: "Internal Server Error",
+        details: errorMsg,
+      });
+    }
   } else {
-    res.setHeader('Allow', ['POST']);
-    return res.status(405).json({ message: 'Method Not Allowed' });
+    res.setHeader("Allow", ["POST"]);
+    return res.status(405).json({ message: "Method Not Allowed" });
   }
 }
