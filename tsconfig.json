@@ -7,7 +7,9 @@
     "strict": false,
     "esModuleInterop": true,
     "resolveJsonModule": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true
   },
-  "include": [ "server.ts", "routes/**/*.ts", "prisma/**/*.ts" ]
+  "include": ["server.ts", "src/routes/**/*.ts", "src/prisma/**/*.ts"],
+  "exclude": ["node_modules"]
 }
