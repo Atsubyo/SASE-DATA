@@ -1,45 +1,28 @@
-import express from 'express';
-import { PrismaClient, type Users } from '@prisma/client';
-import type { Request, Response } from 'express';
-
-const router = express.Router();
-const prisma = new PrismaClient();
-
-interface RequestBody {
-    UIN: string;
-    name: string;
-    event?: string;
-}
-
-interface UserWEvents extends Users {
-    [key: string]: number | string | null;
-}
-
-// GET all users with their attendance records
-router.get('/users', async (_req: Request, res: Response) => {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+// routes/users.ts
+const express_1 = require("express");
+const client_1 = require("@prisma/client");
+const router = (0, express_1.Router)();
+const prisma = new client_1.PrismaClient();
+router.get('/users', async (_req, res) => {
     try {
         const users = await prisma.users.findMany({ include: { attendances: true } });
         res.status(200).json(users);
-    } catch (error) {
-        console.error('Error in GET /users:', error);
+    }
+    catch (error) {
         res.status(500).json({ message: 'Internal Server Error' });
     }
 });
-
-// POST: create new user or update attendance
-router.post('/users', async (req: Request, res: Response) => {
+router.post('/users', async (req, res) => {
     try {
-        const { UIN, name, event } = req.body as RequestBody;
-
+        const { UIN, name, event } = req.body;
         if (!UIN || !name) {
             return res.status(400).json({ message: 'UIN and name are required.' });
         }
-
         let user = await prisma.users.findUnique({ where: { UIN } });
-
         if (user) {
-            const typeSafeUser = user as UserWEvents;
-
+            const typeSafeUser = user;
             if (event) {
                 const eventKey = event.toUpperCase();
                 if (!typeSafeUser[eventKey]) {
@@ -49,11 +32,8 @@ router.post('/users', async (req: Request, res: Response) => {
                     });
                 }
             }
-
             return res.status(200).json({ message: 'User already exists', user });
         }
-
-        // Create new user
         user = await prisma.users.create({
             data: {
                 UIN,
@@ -61,28 +41,23 @@ router.post('/users', async (req: Request, res: Response) => {
                 ...(event ? { [event.toUpperCase()]: name } : {}),
             },
         });
-
         return res.status(201).json({ message: 'User created', user });
-    } catch (error) {
-        console.error('Error in POST /users:', error);
+    }
+    catch (error) {
         res.status(500).json({ message: 'Internal Server Error' });
     }
 });
-
-// DELETE user by UIN
-router.delete('/users', async (req: Request, res: Response) => {
+router.delete('/users', async (req, res) => {
     try {
-        const { UIN } = req.body as { UIN: string };
+        const { UIN } = req.body;
         if (!UIN) {
             return res.status(400).json({ message: 'UIN is required to delete user.' });
         }
-
         await prisma.users.delete({ where: { UIN } });
         res.status(204).send();
-    } catch (error) {
-        console.error('Error in DELETE /users:', error);
+    }
+    catch (error) {
         res.status(500).json({ message: 'Internal Server Error' });
     }
 });
-
-export default router;
+exports.default = router;

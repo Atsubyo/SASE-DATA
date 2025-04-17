@@ -1,5 +1,6 @@
+// routes/register.ts
 import { Router, Request, Response } from 'express';
-import prisma from '../pages/api/prismaClient';
+import prisma from '../prisma/prismaClient';
 
 const router = Router();
 
@@ -12,8 +13,6 @@ const eventMapping: Record<string, string> = {
 };
 
 router.post('/', async (req: Request, res: Response) => {
-    console.log('Request body:', req.body);
-
     const { UIN, name, event } = req.body;
 
     if (!UIN || !name || !event) {
@@ -28,45 +27,33 @@ router.post('/', async (req: Request, res: Response) => {
     try {
         let user = await prisma.users.findUnique({ where: { UIN } });
         if (!user) {
-            console.log('User not found, creating a new user');
             user = await prisma.users.create({ data: { UIN, name } });
-            console.log('User created:', user);
-        } else {
-            console.log('User already exists:', user);
         }
 
         const eventRecord = await prisma.event.findUnique({ where: { code: event } });
         if (!eventRecord) {
-            console.log('Event record not found for code:', event);
             return res.status(404).json({ message: 'Event not found.' });
         }
-        console.log('Event record found:', eventRecord);
 
         const existingAttendance = await prisma.attendance.findFirst({
-            where: {
-                userId: user.id,
-                eventId: eventRecord.id,
-            },
+            where: { userId: user.id, eventId: eventRecord.id },
         });
 
         if (existingAttendance) {
-            console.log('Attendance already registered for this event:', existingAttendance);
             return res.status(200).json({ message: 'Attendance already registered for this event.' });
-        } else {
-            console.log('Creating a new attendance record');
-            await prisma.attendance.create({
-                data: {
-                    userId: user.id,
-                    eventId: eventRecord.id,
-                    attended: true,
-                },
-            });
-            return res.status(200).json({ message: 'Attendance registered successfully.' });
         }
+
+        await prisma.attendance.create({
+            data: {
+                userId: user.id,
+                eventId: eventRecord.id,
+                attended: true,
+            },
+        });
+
+        return res.status(200).json({ message: 'Attendance registered successfully.' });
     } catch (error: any) {
-        const errorMsg = error?.message || JSON.stringify(error) || 'Unknown error';
-        console.error('Error registering attendance:', errorMsg);
-        return res.status(500).json({ message: 'Internal Server Error', details: errorMsg });
+        return res.status(500).json({ message: 'Internal Server Error', details: error.message || 'Unknown error' });
     }
 });
 

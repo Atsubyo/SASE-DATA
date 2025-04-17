@@ -1,8 +1,8 @@
-import express from 'express';
+// routes/users.ts
+import { Router, Request, Response } from 'express';
 import { PrismaClient, type Users } from '@prisma/client';
-import type { Request, Response } from 'express';
 
-const router = express.Router();
+const router = Router();
 const prisma = new PrismaClient();
 
 interface RequestBody {
@@ -15,18 +15,15 @@ interface UserWEvents extends Users {
     [key: string]: number | string | null;
 }
 
-// GET all users with their attendance records
 router.get('/users', async (_req: Request, res: Response) => {
     try {
         const users = await prisma.users.findMany({ include: { attendances: true } });
         res.status(200).json(users);
     } catch (error) {
-        console.error('Error in GET /users:', error);
         res.status(500).json({ message: 'Internal Server Error' });
     }
 });
 
-// POST: create new user or update attendance
 router.post('/users', async (req: Request, res: Response) => {
     try {
         const { UIN, name, event } = req.body as RequestBody;
@@ -53,7 +50,6 @@ router.post('/users', async (req: Request, res: Response) => {
             return res.status(200).json({ message: 'User already exists', user });
         }
 
-        // Create new user
         user = await prisma.users.create({
             data: {
                 UIN,
@@ -64,12 +60,10 @@ router.post('/users', async (req: Request, res: Response) => {
 
         return res.status(201).json({ message: 'User created', user });
     } catch (error) {
-        console.error('Error in POST /users:', error);
         res.status(500).json({ message: 'Internal Server Error' });
     }
 });
 
-// DELETE user by UIN
 router.delete('/users', async (req: Request, res: Response) => {
     try {
         const { UIN } = req.body as { UIN: string };
@@ -80,7 +74,6 @@ router.delete('/users', async (req: Request, res: Response) => {
         await prisma.users.delete({ where: { UIN } });
         res.status(204).send();
     } catch (error) {
-        console.error('Error in DELETE /users:', error);
         res.status(500).json({ message: 'Internal Server Error' });
     }
 });

@@ -1,10 +1,10 @@
-// routes/time.js (or routes/time.ts if you're using TypeScript)
-import express from 'express';
+// routes/time.ts
+import { Router, Request, Response } from 'express';
 import moment from 'moment-timezone';
 
-const router = express.Router();
+const router = Router();
 
-router.get('/time', (req, res) => {
+router.get('/time', (_req: Request, res: Response) => {
     const serverTime = moment().tz('America/Chicago').format();
     res.status(200).json({ time: serverTime });
 });
