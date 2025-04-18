@@ -13,7 +13,7 @@ export const getAttendance = async (
 ) => {
   try {
     // 1) Cast the query to an object { uin?: string }
-    const { uin } = req.query as { uin?: string };
+    const uin = req.params.uin;
 
     // 2) Validate 'uin'
     if (!uin || typeof uin !== 'string') {

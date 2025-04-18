@@ -3,6 +3,6 @@ import { getAttendance } from '../controllers/attendanceController';
 
 const router = Router();
 
-router.get('/', getAttendance);
+router.get('/:uin', getAttendance);
 
 export default router;

@@ -10,6 +10,6 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["server.ts", "src/routes/**/*.ts", "src/prisma/**/*.ts"],
+  "include": ["src/**/*", "src/prisma"],
   "exclude": ["node_modules"]
 }

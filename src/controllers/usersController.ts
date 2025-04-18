@@ -78,7 +78,8 @@ export const deleteUser = async (
   next: NextFunction,
 ) => {
   try {
-    const { UIN } = req.body as { UIN: string };
+    const UIN = req.params.uin;
+    
     if (!UIN) {
       throw new Error('UIN is required to delete user.');
     }
