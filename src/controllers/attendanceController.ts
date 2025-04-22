@@ -47,3 +47,12 @@ export const getAttendance = async (
     next(error);
   }
 };
+
+export const hello = (req: Request, res: Response, next: NextFunction) => {
+  try {
+    console.log(req);
+    res.json(req);
+  } catch (error) {
+    next(error);
+  }
+};
